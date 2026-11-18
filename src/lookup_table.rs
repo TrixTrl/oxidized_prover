@@ -33,46 +33,28 @@ pub fn create_lookup_table<T>() -> LookupTable<T> {
     };
 }
 
+#[derive(Clone)]
 pub struct LookupID<T>(pub u64, pub Rc<LookupTable<T>>);
-
-impl Clone for LookupID<Execution> {
-    fn clone(&self) -> LookupID<Execution> {
-        let execution = self
-            .1
-            .map
-            .borrow()
-            .get(&self.0)
-            .expect("An ID existing must mean it's in the table")
-            .clone();
-
-        return self.1.add_value(execution);
-    }
-}
-
-impl Clone for LookupID<Function> {
-    fn clone(&self) -> LookupID<Function> {
-        return LookupID(self.0, self.1.clone());
-    }
-}
-
-pub trait CopyExact {
-    fn copy(&self) -> Self;
-}
-
-impl<T> CopyExact for LookupID<T> {
-    fn copy(&self) -> LookupID<T> {
-        LookupID(self.0, self.1.clone())
-    }
-}
-
-impl<T: CopyExact> LookupID<T> {
-    pub fn get_value(&self) -> T {
-        self.1.map.borrow()[&self.0].copy()
-    }
-}
 
 impl<T> LookupID<T> {
     pub fn update_value(&mut self, value: T) {
         self.1.map.borrow_mut().insert(self.0, value);
+    }
+}
+
+impl<T> Drop for LookupID<T> {
+    fn drop(&mut self) {
+        assert!(self.1.map.borrow_mut().remove(&self.0).is_some(), "Somehow tried dropping an already dropped reference");
+    }
+}
+
+impl<T: Clone> LookupID<T> {
+    pub fn get_value(&self) -> T {
+        self.1
+            .map
+            .borrow()
+            .get(&self.0)
+            .expect("Tried reading from a dead lookup value")
+            .clone()
     }
 }

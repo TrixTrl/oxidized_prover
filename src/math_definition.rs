@@ -1,7 +1,9 @@
+use std::rc::Rc;
+
 use crate::{lookup_table::LookupID, math_type::Type};
 pub enum Definition_Field {
     NoValue,
-    ExistingType(LookupID<Type>),
+    ExistingType(Rc<LookupID<Type>>),
     New,
 }
 

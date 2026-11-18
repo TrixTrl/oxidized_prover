@@ -1,40 +1,43 @@
 use std::rc::Rc;
 
 use crate::{
-    lookup_table::{CopyExact, LookupID, LookupTable},
+    lookup_table::{LookupID, LookupTable},
     math_type::Type,
 };
 
+#[derive(Clone)]
 pub struct Function {
-    name: String,
-    input_1_type: Option<LookupID<Type>>,
-    input_2_type: Option<LookupID<Type>>,
-    output_type: LookupID<Type>,
+    pub name: String,
+    pub input_1_type: Option<Rc<LookupID<Type>>>,
+    pub input_2_type: Option<Rc<LookupID<Type>>>,
+    pub output_type: Rc<LookupID<Type>>,
 }
 
+/*
 impl CopyExact for Function {
     fn copy(&self) -> Function {
         Function {
             name: self.name.clone(),
             input_1_type: match self.input_1_type {
                 None => Option::None,
-                Some(ref x) => Option::from(x.copy()),
+                Some(ref x) => Option::from(Rc::clone(x)),
             },
             input_2_type: match self.input_2_type {
                 None => Option::None,
-                Some(ref x) => Option::from(x.copy()),
+                Some(ref x) => Option::from(Rc::clone(x)),
             },
-            output_type: self.output_type.copy(),
+            output_type: Rc::clone(&self.output_type),
         }
     }
 }
+*/
 
 pub fn create_function(
     table: &Rc<LookupTable<Function>>,
     name: String,
-    input_1_type: Option<&LookupID<Type>>,
-    input_2_type: Option<&LookupID<Type>>,
-    output_type: &LookupID<Type>,
+    input_1_type: Option<Rc<LookupID<Type>>>,
+    input_2_type: Option<Rc<LookupID<Type>>>,
+    output_type: Rc<LookupID<Type>>,
 ) -> LookupID<Function> {
     assert_ne!(
         name,
@@ -48,13 +51,13 @@ pub fn create_function(
             name: name.clone(),
             input_1_type: match input_1_type {
                 None => Option::None,
-                Some(ref x) => Option::from(x.copy()),
+                Some(ref x) => Option::from(Rc::clone(x)),
             },
             input_2_type: match input_2_type {
                 None => Option::None,
-                Some(ref x) => Option::from(x.copy()),
+                Some(ref x) => Option::from(Rc::clone(x)),
             },
-            output_type: output_type.copy(),
+            output_type: Rc::clone(&output_type),
         },
     )
 }
@@ -96,7 +99,7 @@ pub fn print_function(f: &Function) {
 }
 
 pub fn print_functions(table: &Rc<LookupTable<Function>>) {
-    println!("Functions:");
+    println!("\nFunctions:");
     for (_k, v) in table.map.borrow().iter() {
         print_function(v);
     }
